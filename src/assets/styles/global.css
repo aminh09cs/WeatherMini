@@ -1,0 +1,32 @@
+:root {
+	--primary: #259875;
+	--secondary: #202726;
+	--third: #676c6b;
+	--dark: #0b0f0e;
+	--light: #ffffff;
+	--error: #f12369;	
+  
+	--font: "Nunito", sans-serif;
+	--textSize: 16px;
+  }
+  
+  * {
+	padding: 0;
+	margin: 0;
+	box-sizing: border-box;
+  }
+  li{
+	list-style: none;
+  }
+  a{
+	text-decoration: none;
+  }
+  
+  html,
+  body {
+	/* background-color: var(--dark); */
+	color: var(--light);
+	font-family: var(--font);
+	font-size: var(--textSize);
+  }
+  
