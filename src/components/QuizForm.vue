@@ -14,11 +14,14 @@
                         <div class="form-group">
                             <div class="form-item col">
                                 <label for="name">What is your full name?</label>
-                                <input id="name" type="text" placeholder="John Smith" />
+                                <input id="name" type="text" placeholder="John Smith" v-model="quiz.fullName" />
+                                {{ quiz.fullName }}
                             </div>
                             <div class="form-item col">
                                 <label for="email">What is your email address?</label>
-                                <input id="email" type="email" placeholder="skyalbert.960@gmail.com" />
+                                <input id="email" type="email" placeholder="skyalbert.960@gmail.com"
+                                    v-model="quiz.email" />
+                                {{ quiz.email }}
                             </div>
                         </div>
                     </div>
@@ -49,7 +52,9 @@
                         <div class="form-item">
                             <label for="about">What is your project all about?</label>
                             <textarea id="about"
-                                placeholder="Hey RHP Team, I’d love  to talk to you about  branding this Something AI  project we’re working..." />
+                                placeholder="Hey RHP Team, I’d love  to talk to you about  branding this Something AI  project we’re working..."
+                                v-model="quiz.desc" />
+                            {{ quiz.desc }}
                         </div>
                         <div class="form-item">
                             <ul class="items">
@@ -105,6 +110,7 @@
     </form>
 </template>
 <script setup>
+import { ref } from 'vue';
 const jobOptions = [
     {
         id: 1,
@@ -119,6 +125,12 @@ const jobOptions = [
         name: "Motion Design",
     }
 ]
+
+let quiz = ref({
+    fullName: "",
+    email: "",
+    desc: "",
+})
 </script>
 <style>
 .container {
