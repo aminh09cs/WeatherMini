@@ -1,5 +1,5 @@
 <template>
-    <section class="container" :class=[theme]>
+    <section class="container" :class=[theme] ref="bg">
         <div class="weather-location">
             <div class="weather-location-left">
                 <img src="../assets/images/Vector.png" alt="local">
@@ -100,6 +100,7 @@ let temperature_2m_unit = ref("");
 let relativehumidity_2m_unit = ref("");
 let rain_unit = ref("");
 let windspeed_10m_unit = ref("");
+const selectHour = ref(null);
 
 
 //data in a day
@@ -114,20 +115,24 @@ let show_temp = ref({});
 
 
 //check day/night
+let bg = ref(null);
 const hour = computed(() => {
     return new Date().getHours();
 })
 setInterval(() => {
     hour.value = new Date().getHours();
 }, 10000)
+
 const theme = computed(() => {
-    if (hour.value >= 6 && hour.value <= 17) {
+    const _hour = selectHour.value || hour.value;
+    if (_hour >= 6 && _hour <= 17) {
         return 'day';
     }
     else {
         return 'night'
     }
 })
+
 
 //convert month num to String 1-Jan, 2-Fre
 const toMonthName = (date) => {
@@ -270,7 +275,9 @@ onMounted(() => {
     getData();
 })
 const onShowTemp = (item) => {
+    selectHour.value = +item.time.slice(-5, -3);
     show_temp.value.temperature_2m = item["temperature_2m"];
+
 }
 
 const handleDataDay = (key, value) => {
