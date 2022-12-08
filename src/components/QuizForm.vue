@@ -1,5 +1,5 @@
 <template>
-    <form class="screen">
+    <form class="screen" @submit.prevent="onSubmit">
         <div class="container">
             <div class="row">
                 <h1 class="title">Now, about your project...</h1>
@@ -14,8 +14,10 @@
                         <div class="form-group">
                             <div class="form-item col">
                                 <label for="name">What is your full name?</label>
-                                <input id="name" type="text" placeholder="John Smith" v-model="quiz.fullName" />
+                                <input id="name" type="text" placeholder="John Smith" v-model="quiz.fullName"
+                                    :class="{ error: error.status }" />
                                 {{ quiz.fullName }}
+                                <p v-show="error.status">{{error.text}}</p>
                             </div>
                             <div class="form-item col">
                                 <label for="email">What is your email address?</label>
@@ -32,10 +34,12 @@
                         </p>
                         <div class="row">
                             <div class="col-4" v-for="option in jobOptions" :key="option.id">
-                                <div class="block">
+                                <div class="block" :style="{
+                                    backgroundColor: quiz.jobs.includes(option.id) ? '#157347' : ''
+                                }">
                                     <label class="option">
                                         <span>{{ option.name }}</span>
-                                        <input type="checkbox" />
+                                        <input type="checkbox" :value="option.id" v-model="quiz.jobs" />
                                         <span class="checkmark"></span>
                                     </label>
                                 </div>
@@ -123,14 +127,41 @@ const jobOptions = [
     {
         id: 3,
         name: "Motion Design",
-    }
+    },
+    {
+        id: 4,
+        name: "Design",
+    },
+    {
+        id: 5,
+        name: "Hatotu",
+    },
+    {
+        id: 6,
+        name: "Model",
+    },
 ]
-
 let quiz = ref({
     fullName: "",
     email: "",
     desc: "",
-})
+    jobs: [],
+});
+let error = ref({
+    text: "",
+    status: false,
+});
+const onSubmit = () => {
+    console.log(quiz.value.jobs);
+    if (quiz.value.fullName.length < 6 || quiz.value.fullName.length > 18) {
+        error.value.text = "failed";
+        error.value.status = true;
+    }
+    else{
+        error.value.text = "";
+        error.value.status = false;
+    }
+}
 </script>
 <style>
 .container {

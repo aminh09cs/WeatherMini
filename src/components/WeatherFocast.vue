@@ -144,7 +144,8 @@ const checkDateNow = () => {
     let month = toMonthName(date);
     day = day.toString().padStart(2, '0');
     //May 3rd
-    currentDate.value = `${month}, ${day}`;
+
+    currentDate.value = `${month.slice(0, 3)}, ${day}`;
     //Tuesday
     currentDay.value = toDayName(date);
 }
@@ -289,7 +290,7 @@ const handleDataDay = (key, value) => {
     const d = new Date();
     d.setMonth(+date[1] - 1);
     date[1] = d.toLocaleString("default", { month: "long" });
-    currentDate.value = `${date[1]}, ${date[2]}`;
+    currentDate.value = `${date[1].slice(0, 3)}, ${date[2]}`;
 
 }
 </script>
@@ -311,6 +312,7 @@ const handleDataDay = (key, value) => {
             display: flex;
             align-items: center;
             gap: 10px;
+            cursor: pointer;
 
             p {
                 font-style: normal;
@@ -569,8 +571,6 @@ const handleDataDay = (key, value) => {
         }
     }
 }
-
-
 
 @keyframes move {
     0% {
