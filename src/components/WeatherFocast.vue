@@ -1,5 +1,5 @@
 <template>
-    <section class="container" ref="bgweb">
+    <section class="container" :class=[theme]>
         <div class="weather-location">
             <div class="weather-location-left">
                 <img src="../assets/images/Vector.png" alt="local">
@@ -12,14 +12,16 @@
             </div>
         </div>
         <div class="weather-img">
-            <img src="../assets/images/sun.png" alt="Sun" class="wea" ref="bgsun">
+            <div class="wea">
+
+            </div>
             <div class="weather-info">
                 <h1>{{ show_temp["temperature_2m"] + temperature_2m_unit }}</h1>
                 <p>Precipipations</p>
                 <span>{{ max_temp.temperature_2m + temperature_2m_unit }}</span>
                 <span>{{ min_temp.temperature_2m + temperature_2m_unit }}</span>
             </div>
-            <ul class="weather-param" ref="bgparam">
+            <ul class="weather-param">
                 <li class="weather-param-info">
                     <span><img src="../assets/images/rain.png" alt=""></span>
                     <span>{{ show_temp["rain"] + rain_unit }}</span>
@@ -34,7 +36,7 @@
                 </li>
             </ul>
             <div class="scroll">
-                <div class="weather-date" ref="bgdate">
+                <div class="weather-date">
                     <div class="weather-date-top">
                         <p>{{ currentDay }}</p>
                         <p>{{ currentDate }}</p>
@@ -48,7 +50,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="weather-weekly" ref="bgweekly">
+                <div class="weather-weekly">
                     <div class="weather-weekly-top">
                         <p class="weather-weekly-top-title">Next Forecast</p>
                         <div>
@@ -77,16 +79,9 @@
 </template>
 <script setup>
 import axios from 'axios'
-import { ref, onMounted } from "vue";
-import sunday from "../assets/images/sunday.png";
-import sun from "../assets/images/sun.png";
+import { ref, onMounted, computed } from "vue";
 
 //show day/night screen
-let bgweb = ref(null);
-let bgparam = ref(null);
-let bgdate = ref(null);
-let bgsun = ref(null);
-let bgweekly = ref(null);
 // current date data
 let currentDate = ref("");
 let currentDay = ref("");
@@ -109,34 +104,20 @@ let min_temp = ref({});
 let max_temp = ref({});
 let show_temp = ref({});
 
+
 //check day/night
-const checkDayNight = () => {
-    let currentDate = new Date();
-    let hour = currentDate.toTimeString().split(" ")[0].slice(0, 2);
-
-    switch (true) {
-        //day
-        case (+hour >= 6 && +hour <= 18):
-            bgweb.value.style.background = "linear-gradient(167.44deg, #29B2DD 0%, #33AADD 47.38%, #2DC8EA 100%)";
-            bgparam.value.style.background = "rgba(255, 255, 255, 0.2)";
-            bgdate.value.style.background = "rgba(255, 255, 255, 0.2)";
-            bgsun.value.src = sunday;
-            bgweekly.value.style.background = "rgba(255, 255, 255, 0.2)";
-            break;
-        //night
-        case ((+hour >= 0 && +hour <= 5) || (+hour >= 19 && +hour <= 23)):
-            bgweb.value.style.background = "linear-gradient(167.44deg, #08244F 0%, #134CB5 47.38%, #0B42AB 100%)";
-            bgparam.value.style.background = "rgb(11, 56, 134)";
-            bgdate.value.style.background = "rgb(11, 56, 134)";
-            bgsun.value.src = sun;
-            bgweekly.value.style.background = "rgb(11, 56, 134)";
-
-            break;
-        default:
-            break;
+const hour = computed(() => {
+    return new Date().getHours();
+})
+const theme = computed(() => {
+    if (hour.value >= 6 && hour.value <= 17) {
+        return 'day';
     }
+    else {
+        return 'night'
+    }
+})
 
-}
 //convert month num to String 1-Jan, 2-Fre
 const toMonthName = (date) => {
     return date.toLocaleString('en-US', { month: 'long' });
@@ -150,10 +131,9 @@ const checkDateNow = () => {
 
     let day = date.getDate();
     let month = toMonthName(date);
-    let year = date.getFullYear();
     day = day.toString().padStart(2, '0');
-    //May 3rd, 2016
-    currentDate.value = `${month} ${day}, ${year}`;
+    //May 3rd
+    currentDate.value = `${month}, ${day}`;
     //Tuesday
     currentDay.value = toDayName(date);
 }
@@ -269,12 +249,11 @@ const getData = async () => {
     showTempByHour();
 }
 onMounted(() => {
+
     setInterval(() => {
         showTempByHour();
         getData();
-        console.log(1);
     }, 30000);
-    checkDayNight();
     checkDateNow();
     getData();
 })
@@ -291,39 +270,15 @@ const handleDataDay = (key, value) => {
 
     max_temp.value["temperature_2m"] = dataDay.value["max_temp"];
     min_temp.value["temperature_2m"] = dataDay.value["min_temp"];
-    currentDay.value = key;
+
     //showday
-    switch (key) {
-        case "Mon":
-            currentDay.value = "Monday";
-            break;
-        case "Tue":
-            currentDay.value = "Tuesday";
-            break;
-        case "Wed":
-            currentDay.value = "Wednesday";
-            break;
-        case "Thu":
-            currentDay.value = "Thursday";
-            break;
-        case "Fri":
-            currentDay.value = "Friday";
-            break;
-        case "Sat":
-            currentDay.value = "Saturday";
-            break;
-        case "Sun":
-            currentDay.value = "Sunday";
-            break;
-        default:
-            break;
-    }
+    currentDay.value = key;
     //show date
     let date = dataDay.value[0]["time"].slice(0, 10).split("-");
     const d = new Date();
     d.setMonth(+date[1] - 1);
     date[1] = d.toLocaleString("default", { month: "long" });
-    currentDate.value = `${date[1]} ${date[2]}, ${date[0]}`;
+    currentDate.value = `${date[1]}, ${date[2]}`;
 
 }
 </script>
@@ -335,7 +290,7 @@ const handleDataDay = (key, value) => {
     margin: 0 auto;
     background: linear-gradient(167.44deg, #08244F 0%, #134CB5 47.38%, #0B42AB 100%);
     border-radius: 40px;
-    padding: 70px;
+    padding: 40px;
 
     .weather-location {
         display: flex;
@@ -373,17 +328,13 @@ const handleDataDay = (key, value) => {
     }
 
     .weather-img {
-        width: 284px;
-        height: 200px;
-
-        img {
-            width: 100%;
-            height: 100%;
-        }
-
         .wea {
             animation: move 5s infinite;
             animation-direction: alternate;
+            height: 207px;
+            width: 284px;
+            margin-bottom: 10px;
+
         }
 
         .weather-info {
@@ -417,6 +368,7 @@ const handleDataDay = (key, value) => {
             &-info {
                 display: flex;
                 gap: 7px;
+                width: 78px;
 
                 span {
                     display: block;
@@ -434,10 +386,10 @@ const handleDataDay = (key, value) => {
         .scroll {
             overflow-y: scroll;
             height: 400px;
+            margin-top: 20px;
 
             .weather-date {
                 background-color: rgb(11, 56, 134);
-                box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.25);
                 padding: 20px;
                 margin-top: 20px;
                 border-radius: 20px;
@@ -473,10 +425,12 @@ const handleDataDay = (key, value) => {
                         padding: 20px 5px;
                         transition: border 1s;
                         flex-basis: 25%;
+                        border-radius: 20px;
+                        border: 1px solid transparent;
 
                         &:hover {
-                            border: 1px solid rgba(80, 150, 255, 1);
                             border-radius: 20px;
+                            background-color: rgba(255, 255, 255, 0.2);
                             cursor: pointer;
                         }
 
@@ -489,8 +443,7 @@ const handleDataDay = (key, value) => {
             }
 
             .weather-weekly {
-                background: rgba(255, 255, 255, 0.2);
-                box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.25);
+                background-color: rgb(11, 56, 134);
 
                 border-radius: 20px;
                 padding: 20px;
@@ -544,7 +497,68 @@ const handleDataDay = (key, value) => {
             display: none;
         }
     }
+
 }
+
+//THEME DAY NIGHT
+.day {
+    background: linear-gradient(167.44deg, #29B2DD 0%, #33AADD 47.38%, #2DC8EA 100%) !important;
+
+    .weather-img {
+        .wea {
+            background-image: url("../assets/images/sunday.png");
+        }
+
+        .weather-param {
+            background: rgba(255, 255, 255, 0.2) !important;
+        }
+
+        .weather-date {
+            background: rgba(255, 255, 255, 0.2) !important;
+
+            .weather-date-bottom-info {
+                &:hover {
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+
+                }
+            }
+        }
+
+        .weather-weekly {
+            background: rgba(255, 255, 255, 0.2) !important;
+        }
+    }
+}
+
+.night {
+    background: linear-gradient(167.44deg, #08244F 0%, #134CB5 47.38%, #0B42AB 100%) !important;
+
+    .weather-img {
+        .wea {
+            background-image: url("../assets/images/sun.png");
+        }
+
+        .weather-param {
+            background: rgb(11, 56, 134) !important;
+        }
+
+        .weather-date {
+            background: rgb(11, 56, 134) !important;
+
+            .weather-date-bottom-info {
+                &:hover {
+                    border: 1px solid rgb(11, 56, 134);
+                }
+            }
+        }
+
+        .weather-weekly {
+            background: rgb(11, 56, 134) !important;
+        }
+    }
+}
+
+
 
 @keyframes move {
     0% {
