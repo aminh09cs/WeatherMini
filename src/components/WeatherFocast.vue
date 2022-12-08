@@ -1,5 +1,5 @@
 <template>
-    <section class="container" :class=[theme] ref="bg">
+    <section class="container" :class=[theme]>
         <div class="weather-location">
             <div class="weather-location-left">
                 <img src="../assets/images/Vector.png" alt="local">
@@ -115,7 +115,6 @@ let show_temp = ref({});
 
 
 //check day/night
-let bg = ref(null);
 const hour = computed(() => {
     return new Date().getHours();
 })
@@ -412,9 +411,7 @@ const handleDataDay = (key, value) => {
             .weather-date {
                 background-color: rgb(11, 56, 134);
                 padding: 20px;
-                margin-top: 20px;
                 border-radius: 20px;
-
 
                 &-top {
                     display: flex;
