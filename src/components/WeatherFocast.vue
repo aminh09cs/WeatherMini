@@ -69,7 +69,7 @@
                                 @click="handleDataDay(key, value)">
                                 <div>{{ key }}</div>
                                 <div>
-                                    <img v-if="(dataWeekly[key].max_temp >= 30)"
+                                    <img v-if="(dataWeekly[key].max_temp >= 30.5)"
                                         src="../assets/images/icon-cloud-lighting.png" alt="cloud-lighting">
                                     <img v-else src="../assets/images/icon-cloud-rain.png" alt="cloud-rain">
                                 </div>
