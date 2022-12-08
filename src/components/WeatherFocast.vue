@@ -3,7 +3,7 @@
         <div class="weather-location">
             <div class="weather-location-left">
                 <img src="../assets/images/Vector.png" alt="local">
-                <p>Fortaleza</p>
+                <p>Ho Chi Minh</p>
                 <img src="../assets/images/show.png" alt="arrow">
             </div>
             <div class="weather-location-right">
@@ -18,8 +18,8 @@
             <div class="weather-info">
                 <h1>{{ show_temp["temperature_2m"] + temperature_2m_unit }}</h1>
                 <p>Precipipations</p>
-                <span>{{ max_temp.temperature_2m + temperature_2m_unit }}</span>
-                <span>{{ min_temp.temperature_2m + temperature_2m_unit }}</span>
+                <span>Max.: {{ max_temp.temperature_2m + temperature_2m_unit }}</span>
+                <span>Min.: {{ min_temp.temperature_2m + temperature_2m_unit }}</span>
             </div>
             <ul class="weather-param">
                 <li class="weather-param-info">
@@ -45,7 +45,13 @@
                         <div class="weather-date-bottom-info" v-for="(item, i) in dataDay" :key="i"
                             @click="onShowTemp(item)">
                             <p>{{ item["temperature_2m"] }}&deg;C</p>
-                            <img src="../assets/images/wea.png" alt="">
+                            <img v-if="(+item.time.slice(-5, -3) >= 18 && +item.time.slice(-5, -3) <= 23)
+                            || (+item.time.slice(-5, -3) >= 0 && +item.time.slice(-5, -3) <= 5)"
+                                src="../assets/images/icon-moon-cloud.png" alt="moon-cloud">
+                            <img v-else-if="(item.temperature_2m >= 28)" src="../assets/images/icon-sun-cloud.png"
+                                alt="sun-cloud">
+                            <img v-else src="../assets/images/icon-cloud.png" alt="cloud">
+
                             <p>{{ item["time"].slice(-5) }}</p>
                         </div>
                     </div>
@@ -63,7 +69,9 @@
                                 @click="handleDataDay(key, value)">
                                 <div>{{ key }}</div>
                                 <div>
-                                    <img src="../assets/images/rain_week.png" alt="">
+                                    <img v-if="(dataWeekly[key].max_temp >= 30)"
+                                        src="../assets/images/icon-cloud-lighting.png" alt="cloud-lighting">
+                                    <img v-else src="../assets/images/icon-cloud-rain.png" alt="cloud-rain">
                                 </div>
                                 <div>
                                     {{ dataWeekly[key]["max_temp"] + temperature_2m_unit }}
@@ -109,6 +117,9 @@ let show_temp = ref({});
 const hour = computed(() => {
     return new Date().getHours();
 })
+setInterval(() => {
+    hour.value = new Date().getHours();
+}, 10000)
 const theme = computed(() => {
     if (hour.value >= 6 && hour.value <= 17) {
         return 'day';
@@ -217,7 +228,7 @@ const showTempByHour = () => {
     show_temp.value = obj;
 }
 const getData = async () => {
-    await axios.get("https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m,relativehumidity_2m,rain,windspeed_10m")
+    await axios.get("https://api.open-meteo.com/v1/forecast?latitude=10.82&longitude=106.63&hourly=temperature_2m,relativehumidity_2m,rain,windspeed_10m")
         .then((res) => {
             if (res && res.data) {
                 data.value = res.data;
@@ -387,6 +398,7 @@ const handleDataDay = (key, value) => {
             overflow-y: scroll;
             height: 400px;
             margin-top: 20px;
+            border-radius: 20px;
 
             .weather-date {
                 background-color: rgb(11, 56, 134);
