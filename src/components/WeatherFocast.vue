@@ -1,14 +1,24 @@
 <template>
-    <section class="container" :class=[theme]>
+    <section class="container" :class=[theme] @click.self="(showLocation = false)">
         <div class="weather-location">
-            <div class="weather-location-left">
+            <div class="weather-location-left" @click="onShowLocation()">
                 <img src="../assets/images/Vector.png" alt="local">
-                <p>Ho Chi Minh</p>
+                <p>{{ locationName }}</p>
                 <img src="../assets/images/show.png" alt="arrow">
+            </div>
+            <div class="search-local" v-show="showLocation">
+                <div class="search-local-item">
+                    <label for="long">Longitude:</label>
+                    <input id="long" type="text" placeholder="longitude" v-model="location.longitude">
+                </div>
+                <div class="search-local-item">
+                    <label for="lat">Latitude:</label>
+                    <input id="lat" type="text" placeholder="latitude" v-model="location.latitude">
+                </div>
+                <button class="btn-search-localtion" @click="onGetLocaltion()">SEARCH</button>
             </div>
             <div class="weather-location-right">
                 <img src="../assets/images/bell.png" alt="bell">
-
             </div>
         </div>
         <div class="weather-img">
@@ -16,23 +26,23 @@
 
             </div>
             <div class="weather-info">
-                <h1>{{ show_temp["temperature_2m"] + temperature_2m_unit }}</h1>
+                <h1>{{ show_temp["temperature_2m"] + weatherUnit.temperature_2m_unit }}</h1>
                 <p>Precipipations</p>
-                <span>Max.: {{ max_temp.temperature_2m + temperature_2m_unit }}</span>
-                <span>Min.: {{ min_temp.temperature_2m + temperature_2m_unit }}</span>
+                <span>Max.: {{ max_temp.temperature_2m + weatherUnit.temperature_2m_unit }}</span>
+                <span>Min.: {{ min_temp.temperature_2m + weatherUnit.temperature_2m_unit }}</span>
             </div>
             <ul class="weather-param">
                 <li class="weather-param-info">
                     <span><img src="../assets/images/rain.png" alt=""></span>
-                    <span>{{ show_temp["rain"] + rain_unit }}</span>
+                    <span>{{ show_temp["rain"] + weatherUnit.rain_unit }}</span>
                 </li>
                 <li class="weather-param-info">
                     <span><img src="../assets/images/temp.png" alt=""></span>
-                    <span>{{ show_temp["relativehumidity_2m"] + relativehumidity_2m_unit }}</span>
+                    <span>{{ show_temp["relativehumidity_2m"] + weatherUnit.relativehumidity_2m_unit }}</span>
                 </li>
                 <li class="weather-param-info">
                     <span><img src="../assets/images/wind.png" alt=""></span>
-                    <span>{{ show_temp["windspeed_10m"] + windspeed_10m_unit }}</span>
+                    <span>{{ show_temp["windspeed_10m"] + weatherUnit.windspeed_10m_unit }}</span>
                 </li>
             </ul>
             <div class="scroll">
@@ -74,8 +84,8 @@
                                     <img v-else src="../assets/images/icon-cloud-rain.png" alt="cloud-rain">
                                 </div>
                                 <div>
-                                    {{ dataWeekly[key]["max_temp"] + temperature_2m_unit }}
-                                    {{ dataWeekly[key]["min_temp"] + temperature_2m_unit }}
+                                    {{ dataWeekly[key]["max_temp"] + weatherUnit.temperature_2m_unit }}
+                                    {{ dataWeekly[key]["min_temp"] + weatherUnit.temperature_2m_unit }}
                                 </div>
                             </li>
                         </ul>
@@ -86,8 +96,19 @@
     </section>
 </template>
 <script setup>
-import axios from 'axios'
+import axios from 'axios';
 import { ref, onMounted, computed } from "vue";
+
+//URL API
+let weatherAPI = ref('https://api.open-meteo.com/v1/forecast?latitude=10.8&longitude=106.65&hourly=temperature_2m,relativehumidity_2m,rain,windspeed_10m');
+let locationNameAPI = ref('https://api.opencagedata.com/geocode/v1/json?key=60ae3b8ae27d404789853ddf04a7397b&q=10.8%2C+106.65&pretty=1&no_annotations=1');
+//longitude, latitude
+let location = ref({
+    longitude: "",
+    latitude: "",
+})
+let locationName = ref("");
+let showLocation = ref(false);
 
 //show day/night screen
 // current date data
@@ -95,11 +116,13 @@ let currentDate = ref("");
 let currentDay = ref("");
 
 //weather forcast data UNIT
-let time_unit = ref("");
-let temperature_2m_unit = ref("");
-let relativehumidity_2m_unit = ref("");
-let rain_unit = ref("");
-let windspeed_10m_unit = ref("");
+let weatherUnit = ref({
+    time_unit: "",
+    temperature_2m_unit: "",
+    relativehumidity_2m_unit: "",
+    rain_unit: "",
+    windspeed_10m_unit: "",
+});
 const selectHour = ref(null);
 
 
@@ -107,12 +130,12 @@ const selectHour = ref(null);
 let dataDay = ref([]);
 let dataWeekly = ref({});
 let data = ref({});
+let dataLocation = ref(null);
 
 
 let min_temp = ref({});
 let max_temp = ref({});
 let show_temp = ref({});
-
 
 //check day/night
 const hour = computed(() => {
@@ -123,7 +146,14 @@ setInterval(() => {
 }, 10000)
 
 const theme = computed(() => {
-    const _hour = selectHour.value || hour.value;
+    let _hour;
+    if (selectHour.value === 0) {
+        _hour = selectHour.value;
+    }
+    else {
+        _hour = selectHour.value ? selectHour.value : hour.value;
+    }
+    //console.log(_hour); 
     if (_hour >= 6 && _hour <= 17) {
         return 'day';
     }
@@ -131,7 +161,71 @@ const theme = computed(() => {
         return 'night'
     }
 })
+//on Show Location Modal
+const onShowLocation = () => {
+    showLocation.value = !showLocation.value;
+}
 
+const getLocationUser = () => {
+    navigator.geolocation.getCurrentPosition((position) => {
+        let lat = position.coords.latitude;
+        let long = position.coords.longitude;
+
+        // location.value.longitude = long.toFixed(2);
+        // location.value.latitude = lat.toFixed(2);
+        console.log(long, lat);
+    });
+}
+const onGetLocaltion = async () => {
+    if(location.value.latitude < -90 || location.value.latitude > 90){
+        alert("-90 < Latituse < 90")
+    }
+    else if (location.value.longitude < -180 || location.value.longitude > 180){
+        alert("-180 < Latituse < 180")
+    }
+    else if(isNaN(location.value.longitude) || isNaN(location.value.latitude)){
+        alert("Input is a number")
+    }
+    else{
+        weatherAPI.value = `https://api.open-meteo.com/v1/forecast?latitude=${location.value.latitude}&longitude=${location.value.longitude}&hourly=temperature_2m,relativehumidity_2m,rain,windspeed_10m`;
+        locationNameAPI.value = `https://api.opencagedata.com/geocode/v1/json?key=60ae3b8ae27d404789853ddf04a7397b&q=${location.value.latitude}%2C+${location.value.longitude}&pretty=1&no_annotations=1`;
+    await axios.get(weatherAPI.value)
+        .then((res) => {
+            if (res && res.data) {
+                data.value = res.data;
+            }
+        })
+        .catch((e) => {
+            alert(e);
+        })
+    await axios.get(locationNameAPI.value)
+        .then((res) => {
+            if (res && res.data) {
+                dataLocation.value = res.data.results[0];
+            }
+        })
+        .catch((e) => {
+            alert(e);
+        })
+    //Processing datalocationName
+    if (dataLocation.value.components.city === null) {
+        alert('The country is not ');
+    }
+    locationName.value = dataLocation.value.components.city || dataLocation.value.components.country || dataLocation.value.components.state ||"Not found city name";
+    getDataDay();
+    showTempByHour();
+    getDataWeekly();
+    min_temp.value = dataDay.value.reduce(function (prev, curr) {
+        return prev.temperature_2m < curr.temperature_2m ? prev : curr;
+    })
+    max_temp.value = dataDay.value.reduce(function (prev, curr) {
+        return prev.temperature_2m > curr.temperature_2m ? prev : curr;
+    })
+    showLocation.value = false;
+    }
+
+   
+}
 
 //convert month num to String 1-Jan, 2-Fre
 const toMonthName = (date) => {
@@ -233,7 +327,8 @@ const showTempByHour = () => {
     show_temp.value = obj;
 }
 const getData = async () => {
-    await axios.get("https://api.open-meteo.com/v1/forecast?latitude=10.82&longitude=106.63&hourly=temperature_2m,relativehumidity_2m,rain,windspeed_10m")
+    getLocationUser();
+    await axios.get(weatherAPI.value)
         .then((res) => {
             if (res && res.data) {
                 data.value = res.data;
@@ -242,13 +337,25 @@ const getData = async () => {
         .catch((e) => {
             alert(e);
         })
+    await axios.get(locationNameAPI.value)
+        .then((res) => {
+            if (res && res.data) {
+                dataLocation.value = res.data.results[0];
+            }
+        })
+        .catch((e) => {
+            alert(e);
+        })
+    //Processing datalocationName
+    locationName.value = dataLocation.value.components.city;
 
+    //Processing data
     //set unit
-    time_unit.value = data.value["hourly_units"]["time"];
-    temperature_2m_unit.value = data.value["hourly_units"]["temperature_2m"];
-    relativehumidity_2m_unit.value = data.value["hourly_units"]["relativehumidity_2m"];
-    rain_unit.value = data.value["hourly_units"]["rain"];
-    windspeed_10m_unit.value = data.value["hourly_units"]["windspeed_10m"];
+    weatherUnit.value.time_unit = data.value["hourly_units"]["time"];
+    weatherUnit.value.temperature_2m_unit = data.value["hourly_units"]["temperature_2m"];
+    weatherUnit.value.relativehumidity_2m_unit = data.value["hourly_units"]["relativehumidity_2m"];
+    weatherUnit.value.rain_unit = data.value["hourly_units"]["rain"];
+    weatherUnit.value.windspeed_10m_unit = data.value["hourly_units"]["windspeed_10m"];
 
     //set data weekly and day
     getDataDay();
@@ -264,14 +371,17 @@ const getData = async () => {
     //show temp by hour
     showTempByHour();
 }
-onMounted(() => {
+// onBeforeMount(()=>{
 
+// })
+
+onMounted(() => {
+    getData();
+    checkDateNow();
     setInterval(() => {
         showTempByHour();
         getData();
     }, 30000);
-    checkDateNow();
-    getData();
 })
 const onShowTemp = (item) => {
     selectHour.value = +item.time.slice(-5, -3);
@@ -313,6 +423,43 @@ const handleDataDay = (key, value) => {
     .weather-location {
         display: flex;
         justify-content: space-between;
+
+        position: relative;
+
+        .search-local {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            z-index: 10;
+            background-color: rgba(255, 255, 255, 0.3);
+
+            padding: 20px;
+            border-radius: 20px;
+            .search-local-item {
+                label {
+                    display: inline-block;
+                    width: 75px;
+                }
+
+                input {
+                    width: 90px;
+                }
+            }
+
+            .btn-search-localtion {
+                width: 100%;
+                background-color: #2196F3;
+                transition: background-color 3s;
+                border-radius: 20px;
+                border: none;
+                padding: 5px;
+                cursor: pointer;
+
+                &:hover {
+                    background-color: #0b7dda;
+                }
+            }
+        }
 
         &-left {
             display: flex;
@@ -445,7 +592,7 @@ const handleDataDay = (key, value) => {
                         flex-basis: 25%;
                         border-radius: 20px;
                         border: 1px solid transparent;
-
+                        gap: 20px;
                         &:hover {
                             border-radius: 20px;
                             background-color: rgba(255, 255, 255, 0.2);
@@ -454,7 +601,6 @@ const handleDataDay = (key, value) => {
 
                         img {
                             width: 50px;
-                            height: 50px;
                         }
                     }
                 }
