@@ -1,24 +1,7 @@
-# built
+Dùng Vue tạo 1 app thời tiết cập nhật thời tiết realtime cho các vùng
+Tính năng: - Dự đoán thời tiết trong vòng 1 tuần tới tính ngày Login
 
-## Project setup
-```
-npm install
-```
+Tech: Dùng Vue cơ bản và lấy API từ weatherforecast
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
 
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+=> Clone project về: Run npm run dev để test
